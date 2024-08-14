@@ -12,29 +12,6 @@ mongoose
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 
-const UserSchema = mongoose.Schema({
-  firstName: {
-    type: String,
-    required: true,
-  },
-  lastName: {
-    type: String,
-  },
-  email: {
-    type: String,
-    unique: true,
-    required: true,
-  },
-  jobTitle: {
-    type: String,
-  },
-  gender: {
-    type: String,
-  },
-});
-
-const User = mongoose.model("user", UserSchema);
-
 app.use("/user", userRouter);
 
 const server = http.createServer(app);
