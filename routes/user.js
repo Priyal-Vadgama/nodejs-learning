@@ -1,27 +1,41 @@
-const express = require("express");
-const router = express.Router();
+const { Router } = require("express");
+const User = require("../models/user");
 
-router.route("/").post(async (req, res) => {
-  const body = req.body;
-  if (
-    !body ||
-    !body.firstName ||
-    !body.lastName ||
-    !body.gender ||
-    !body.email
-  ) {
-    return res.status(400).json({ msg: "All fields are required..." });
+const router = Router();
+
+router.get("/signin", (req, res) => {
+  return res.render("signin");
+});
+
+router.get("/signup", (req, res) => {
+  return res.render("signup");
+});
+
+router.post("/signin", async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const token = await User.matchPasswordAndGenerateToken(email, password);
+
+    return res.cookie("token", token).redirect("/");
+  } catch (error) {
+    return res.render("signin", {
+      error: "Incorrect Email or Password",
+    });
   }
-  const result = await User.create({
-    email: body.email,
-    firstName: body.firstName,
-    lastName: body.lastName,
-    gender: body.gender,
+});
+
+router.get("/logout", (req, res) => {
+  res.clearCookie("token").redirect("/");
+});
+
+router.post("/signup", async (req, res) => {
+  const { fullName, email, password } = req.body;
+  await User.create({
+    fullName,
+    email,
+    password,
   });
-
-  console.log(result, "result");
-
-  return res.status(200).json({ msg: "user created..." });
+  return res.redirect("/");
 });
 
 module.exports = router;
