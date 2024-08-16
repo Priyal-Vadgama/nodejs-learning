@@ -1,42 +1,24 @@
-const http = require("http");
 const express = require("express");
-const mongoose = require("mongoose");
-
-const userRouter = require("./routes/user");
-
-mongoose
-  .connect("mongodb://127.0.0.1:27017/nodejs-learning")
-  .then(() => console.log("Mongodb connected.."))
-  .catch(() => console.log("Error in mongo connnection.."));
+const { createServer } = require("node:http");
+const { join } = require("node:path");
+const { Server } = require("socket.io");
 
 const app = express();
-app.use(express.urlencoded({ extended: true }));
+const server = createServer(app);
+const io = new Server(server, {
+    connectionStateRecovery: {}
+  });
 
-const UserSchema = mongoose.Schema({
-  firstName: {
-    type: String,
-    required: true,
-  },
-  lastName: {
-    type: String,
-  },
-  email: {
-    type: String,
-    unique: true,
-    required: true,
-  },
-  jobTitle: {
-    type: String,
-  },
-  gender: {
-    type: String,
-  },
+io.on("connection", (socket) => {
+  socket.on("chat message", (msg) => {
+    io.emit("chat message", msg);
+  });
 });
 
-const User = mongoose.model("user", UserSchema);
+app.get("/", (req, res) => {
+  res.sendFile(join(__dirname, "index.html"));
+});
 
-app.use("/user", userRouter);
-
-const server = http.createServer(app);
-
-server.listen(8000, () => console.log("Server started..."));
+server.listen(3000, () => {
+  console.log("server running at http://localhost:3000");
+});
